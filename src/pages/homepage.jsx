@@ -3,30 +3,43 @@ import { Helmet } from "react-helmet";
 
 import { faMailBulk } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-	faTwitter,
-	faGithub,
-	faStackOverflow,
-	faInstagram,
-} from "@fortawesome/free-brands-svg-icons";
+import { faGithub, faInstagram } from "@fortawesome/free-brands-svg-icons";
 
 import Logo from "../components/common/logo";
 import Footer from "../components/common/footer";
 import NavBar from "../components/common/navBar";
-import Article from "../components/homepage/article";
-import Works from "../components/homepage/works";
 import AllProjects from "../components/projects/allProjects";
 
 import INFO from "../data/user";
 import SEO from "../data/seo";
-import myArticles from "../data/articles";
 
 import "./styles/homepage.css";
+import { ref, child, get } from "firebase/database";
+import { database } from "../fibaseConfig";
 
 const Homepage = () => {
 	const [stayLogo, setStayLogo] = useState(false);
 	const [logoSize, setLogoSize] = useState(80);
 	const [oldLogoSize, setOldLogoSize] = useState(80);
+	const [profile, setProfile] = useState({});
+
+	useEffect(() => {
+		const fetchData = async () => {
+			const dbRef = ref(database);
+			try {
+				const snapshot = await get(child(dbRef, `foto/homepage`));
+				if (snapshot.exists()) {
+					setProfile(snapshot.val());
+				} else {
+					console.log("No data available");
+				}
+			} catch (error) {
+				console.error("Error fetching data:", error);
+			}
+		};
+
+		fetchData();
+	}, []);
 
 	useEffect(() => {
 		window.scrollTo(0, 0);
@@ -103,11 +116,18 @@ const Homepage = () => {
 							<div className="homepage-first-area-right-side">
 								<div className="homepage-image-container">
 									<div className="homepage-image-wrapper">
-										<img
-											src="homepage.jpg"
-											alt="about"
-											className="homepage-image"
-										/>
+										{profile && profile.path ? (
+											<img
+												src={profile.path}
+												alt={
+													profile.title ||
+													"profile image"
+												}
+												className="homepage-image"
+											/>
+										) : (
+											<p>Loading...</p>
+										)}
 									</div>
 								</div>
 							</div>

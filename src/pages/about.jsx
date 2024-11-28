@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
 
 import NavBar from "../components/common/navBar";
@@ -10,8 +10,29 @@ import INFO from "../data/user";
 import SEO from "../data/seo";
 
 import "./styles/about.css";
+import { ref, child, get } from "firebase/database";
+import { database } from "../fibaseConfig";
 
 const About = () => {
+	const [profile, setProfile] = useState({});
+
+	useEffect(() => {
+		const fetchData = async () => {
+			const dbRef = ref(database);
+			try {
+				const snapshot = await get(child(dbRef, `foto/homepage`));
+				if (snapshot.exists()) {
+					setProfile(snapshot.val());
+				} else {
+					console.log("No data available");
+				}
+			} catch (error) {
+				console.error("Error fetching data:", error);
+			}
+		};
+
+		fetchData();
+	}, []);
 	useEffect(() => {
 		window.scrollTo(0, 0);
 	}, []);
@@ -53,11 +74,18 @@ const About = () => {
 							<div className="about-left-side">
 								<div className="about-image-container">
 									<div className="about-image-wrapper">
-										<img
-											src="about.jpg"
-											alt="about"
-											className="about-image"
-										/>
+										{profile && profile.path ? (
+											<img
+												src={profile.path}
+												alt={
+													profile.title ||
+													"profile image"
+												}
+												className="homepage-image"
+											/>
+										) : (
+											<p>Loading...</p>
+										)}
 									</div>
 								</div>
 
